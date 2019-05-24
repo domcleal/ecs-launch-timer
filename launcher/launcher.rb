@@ -4,9 +4,10 @@ require "aws-sdk-cloudwatchlogs"
 require "aws-sdk-ecs"
 
 class AwsLogger
-  def initialize(cw, stream)
+  def initialize(cw, stream, log_group_name)
     @cw = cw
     @stream = stream
+    @log_group_name = log_group_name
     @msgs = []
   end
 
@@ -20,13 +21,13 @@ class AwsLogger
 
   def flush
     token = @cw.describe_log_streams({
-      log_group_name: "launch-timer",
+      log_group_name: @log_group_name,
       log_stream_name_prefix: @stream,
       limit: 1,
     }).log_streams[0].upload_sequence_token
 
     @cw.put_log_events({
-      log_group_name: "launch-timer",
+      log_group_name: @log_group_name,
       log_stream_name: @stream,
       log_events: @msgs,
       sequence_token: token,
@@ -36,8 +37,9 @@ end
 
 def lambda_handler(event:, context:)
   cluster = event["cluster"]
+  log_group = event["log_group"]
   cw = Aws::CloudWatchLogs::Client.new(region: "eu-west-1")
-  logger = AwsLogger.new(cw, cluster)
+  logger = AwsLogger.new(cw, cluster, log_group)
 
   timestamps = {}
 
