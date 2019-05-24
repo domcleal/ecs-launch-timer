@@ -38,6 +38,7 @@ end
 def lambda_handler(event:, context:)
   cluster = event["cluster"]
   log_group = event["log_group"]
+  task_definition = event["task_definition"]
   cw = Aws::CloudWatchLogs::Client.new(region: "eu-west-1")
   logger = AwsLogger.new(cw, cluster, log_group)
 
@@ -46,7 +47,7 @@ def lambda_handler(event:, context:)
   ecs = Aws::ECS::Client.new(region: "eu-west-1")
   new_task = ecs.run_task(
     cluster: cluster,
-    task_definition: "scratch:2",
+    task_definition: task_definition,
     launch_type: cluster.include?("fargate") ? "FARGATE" : "EC2",
     network_configuration: {
       awsvpc_configuration: {
