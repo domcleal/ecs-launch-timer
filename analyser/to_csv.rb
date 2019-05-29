@@ -6,8 +6,8 @@ cw = Aws::CloudWatchLogs::Client.new(region: "eu-west-1")
 
 # TODO: should loop, will return max of 10k events or 1MB
 logs = cw.get_log_events({
-  log_group_name: "launch-timer",
-  log_stream_name: ARGV.first,
+  log_group_name: ARGV[0],
+  log_stream_name: ARGV[1],
   start_from_head: true,
 })
 
